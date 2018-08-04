@@ -1,9 +1,9 @@
-import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-css-only/css/bootstrap.css';
 import 'font-awesome/css/font-awesome.css';
 import 'highlight.js/styles/github.css';
 import '../src/angular-calendar.scss';
 import { NgModule } from '@angular/core';
-import { RouterModule, PreloadAllModules } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgbCollapseModule } from '@ng-bootstrap/ng-bootstrap/collapse/collapse.module';
@@ -265,13 +265,19 @@ import { DemoModule as DefaultDemoModule } from './demo-modules/kitchen-sink/mod
           }
         },
         {
+          path: 'moment',
+          loadChildren: './demo-modules/moment/module#DemoModule',
+          data: {
+            label: 'Use moment'
+          }
+        },
+        {
           path: '**',
           redirectTo: 'kitchen-sink'
         }
       ],
       {
-        useHash: true,
-        preloadingStrategy: PreloadAllModules
+        useHash: true
       }
     )
   ],

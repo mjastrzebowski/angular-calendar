@@ -45,6 +45,11 @@
 
   .cal-day-cell {
     min-height: 100px;
+
+    // ie11 hack for https://github.com/mattlewis92/angular-calendar/issues/501
+    @media all and (-ms-high-contrast: none) {
+      display: block;
+    }
   }
 
   .cal-day-cell:not(:last-child) {
@@ -102,10 +107,6 @@
     color: #fff;
   }
 
-  .cal-event-title:link {
-    color: currentColor;
-  }
-
   .cal-day-cell.cal-in-month.cal-has-events {
     cursor: pointer;
   }
@@ -147,6 +148,22 @@
     .cal-day-badge,
     .cal-event {
       opacity: 0.3;
+    }
+  }
+
+  .cal-draggable {
+    cursor: move;
+  }
+
+  .cal-drag-active * {
+    pointer-events: none;
+  }
+
+  .cal-event-title {
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
     }
   }
 }

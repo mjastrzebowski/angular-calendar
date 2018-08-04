@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "stripInternal": true,
+    "outDir": "./dist/date-adapters",
+    "types": [],
+    "emitDecoratorMetadata": false,
+    "baseUrl": "",
+    "inlineSources": true,
+    "importHelpers": true
+  },
+  "files": [
+    "src/date-adapters/date-fns/index.ts",
+    "src/date-adapters/moment/index.ts"
+  ],
+  "exclude": [
+    "test",
+    "demos",
+    "src"
+  ]
+}

@@ -5,9 +5,9 @@ import {
   Output,
   EventEmitter
 } from '@angular/core';
-import subDays from 'date-fns/sub_days/index';
-import subWeeks from 'date-fns/sub_weeks/index';
-import subMonths from 'date-fns/sub_months/index';
+import { DateAdapter } from '../../date-adapters/date-adapter';
+import { CalendarView } from './calendar-view.enum';
+import { addDaysWithExclusions } from './util';
 
 /**
  * Change the view date to the previous view. For example:
@@ -28,7 +28,7 @@ export class CalendarPreviousViewDirective {
   /**
    * The current view
    */
-  @Input() view: string;
+  @Input() view: CalendarView;
 
   /**
    * The current view date
@@ -36,9 +36,21 @@ export class CalendarPreviousViewDirective {
   @Input() viewDate: Date;
 
   /**
+   * Days to skip when going back by 1 day
+   */
+  @Input() excludeDays: number[] = [];
+
+  /**
+   * The number of days in a week. If set will subtract this amount of days instead of 1 week
+   */
+  @Input() daysInWeek: number;
+
+  /**
    * Called when the view date is changed
    */
   @Output() viewDateChange: EventEmitter<Date> = new EventEmitter();
+
+  constructor(private dateAdapter: DateAdapter) {}
 
   /**
    * @hidden
@@ -46,11 +58,31 @@ export class CalendarPreviousViewDirective {
   @HostListener('click')
   onClick(): void {
     const subFn: any = {
-      day: subDays,
-      week: subWeeks,
-      month: subMonths
+      day: this.dateAdapter.subDays,
+      week: this.dateAdapter.subWeeks,
+      month: this.dateAdapter.subMonths
     }[this.view];
 
-    this.viewDateChange.emit(subFn(this.viewDate, 1));
+    if (this.view === CalendarView.Day) {
+      this.viewDateChange.emit(
+        addDaysWithExclusions(
+          this.dateAdapter,
+          this.viewDate,
+          -1,
+          this.excludeDays
+        )
+      );
+    } else if (this.view === CalendarView.Week && this.daysInWeek) {
+      this.viewDateChange.emit(
+        addDaysWithExclusions(
+          this.dateAdapter,
+          this.viewDate,
+          -this.daysInWeek,
+          this.excludeDays
+        )
+      );
+    } else {
+      this.viewDateChange.emit(subFn(this.viewDate, 1));
+    }
   }
 }

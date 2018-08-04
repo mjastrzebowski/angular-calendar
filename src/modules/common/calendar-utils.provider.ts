@@ -1,41 +1,44 @@
 import { Injectable } from '@angular/core';
 import {
-  getMonthView,
   GetMonthViewArgs,
   MonthView,
-  getWeekViewHeader,
   GetWeekViewHeaderArgs,
   WeekDay,
-  getWeekView,
   GetWeekViewArgs,
-  getDayView,
   GetDayViewArgs,
   DayView,
-  getDayViewHourGrid,
   GetDayViewHourGridArgs,
   DayViewHour,
-  WeekView
+  WeekView,
+  getDayView,
+  getDayViewHourGrid,
+  getMonthView,
+  getWeekViewHeader,
+  getWeekView
 } from 'calendar-utils';
+import { DateAdapter } from '../../date-adapters/date-adapter';
 
 @Injectable()
 export class CalendarUtils {
+  constructor(private dateAdapter: DateAdapter) {}
+
   getMonthView(args: GetMonthViewArgs): MonthView {
-    return getMonthView(args);
+    return getMonthView(this.dateAdapter, args);
   }
 
   getWeekViewHeader(args: GetWeekViewHeaderArgs): WeekDay[] {
-    return getWeekViewHeader(args);
+    return getWeekViewHeader(this.dateAdapter, args);
   }
 
   getWeekView(args: GetWeekViewArgs): WeekView {
-    return getWeekView(args);
+    return getWeekView(this.dateAdapter, args);
   }
 
   getDayView(args: GetDayViewArgs): DayView {
-    return getDayView(args);
+    return getDayView(this.dateAdapter, args);
   }
 
   getDayViewHourGrid(args: GetDayViewHourGridArgs): DayViewHour[] {
-    return getDayViewHourGrid(args);
+    return getDayViewHourGrid(this.dateAdapter, args);
   }
 }

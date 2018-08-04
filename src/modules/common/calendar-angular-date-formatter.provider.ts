@@ -2,14 +2,18 @@ import {
   CalendarDateFormatterInterface,
   DateFormatterParams
 } from './calendar-date-formatter.interface';
-import getISOWeek from 'date-fns/get_iso_week/index';
 import { DatePipe } from '@angular/common';
+import { Injectable } from '@angular/core';
+import { DateAdapter } from '../../date-adapters/date-adapter';
 
 /**
  * This will use the angular date pipe to do all date formatting. It is the default date formatter used by the calendar.
  */
+@Injectable()
 export class CalendarAngularDateFormatter
   implements CalendarDateFormatterInterface {
+  constructor(private dateAdapter: DateAdapter) {}
+
   /**
    * The month view header week day labels
    */
@@ -58,8 +62,15 @@ export class CalendarAngularDateFormatter
       null,
       locale
     );
-    const weekNumber: number = getISOWeek(date);
+    const weekNumber: number = this.dateAdapter.getISOWeek(date);
     return `Week ${weekNumber} of ${year}`;
+  }
+
+  /**
+   * The time formatting down the left hand side of the week view
+   */
+  public weekViewHour({ date, locale }: DateFormatterParams): string {
+    return new DatePipe(locale).transform(date, 'h a', null, locale);
   }
 
   /**

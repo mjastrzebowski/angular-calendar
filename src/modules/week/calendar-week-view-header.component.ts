@@ -5,7 +5,7 @@ import {
   EventEmitter,
   TemplateRef
 } from '@angular/core';
-import { CalendarEvent, WeekDay } from 'calendar-utils';
+import { CalendarEvent, CalendarResource, WeekDay } from 'calendar-utils';
 import { trackByWeekDayHeaderDate } from '../common/util';
 
 @Component({
@@ -25,15 +25,20 @@ import { trackByWeekDayHeaderDate } from '../common/util';
           [class.cal-today]="day.isToday"
           [class.cal-future]="day.isFuture"
           [class.cal-weekend]="day.isWeekend"
-          [class.cal-drag-over]="day.dragOver"
           [ngClass]="day.cssClass"
           (mwlClick)="dayHeaderClicked.emit({day: day})"
-          mwlDroppable
-          (dragEnter)="day.dragOver = true"
-          (dragLeave)="day.dragOver = false"
-          (drop)="day.dragOver = false; eventDropped.emit({event: $event.dropData.event, newStart: day.date})">
-          <b>{{ day.date | calendarDate:'weekViewColumnHeader':locale }}</b><br>
-          <span>{{ day.date | calendarDate:'weekViewColumnSubHeader':locale }}</span>
+          dragOverClass="cal-drag-over"
+          (drop)="eventDropped.emit({event: $event.dropData.event, newStart: day.date})">
+          <div class="cal-header-date">
+            <b>{{ day.date | calendarDate:'weekViewColumnHeader':locale }}</b><br>
+            <span>{{ day.date | calendarDate:'weekViewColumnSubHeader':locale }}</span>
+          </div>
+
+          <div class="cal-header-resources" *ngIf="resources?.length > 0">
+            <div class="cal-header-resource" *ngFor="let resource of resources" [style.width.%]="100 / resources.length" mwlDroppable>
+              {{ resource?.title }}
+            </div>
+          </div>
         </div>
       </div>
     </ng-template>
@@ -49,6 +54,8 @@ export class CalendarWeekViewHeaderComponent {
   @Input() locale: string;
 
   @Input() customTemplate: TemplateRef<any>;
+
+  @Input() resources: CalendarResource[];
 
   @Output()
   dayHeaderClicked: EventEmitter<{ day: WeekDay }> = new EventEmitter<{

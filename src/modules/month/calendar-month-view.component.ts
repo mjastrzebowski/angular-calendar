@@ -19,18 +19,14 @@ import {
   ViewPeriod
 } from 'calendar-utils';
 import { Subject, Subscription } from 'rxjs';
-import isSameDay from 'date-fns/is_same_day/index';
-import setDate from 'date-fns/set_date/index';
-import setMonth from 'date-fns/set_month/index';
-import setYear from 'date-fns/set_year/index';
-import getDate from 'date-fns/get_date/index';
-import getMonth from 'date-fns/get_month/index';
-import getYear from 'date-fns/get_year/index';
-import differenceInSeconds from 'date-fns/difference_in_seconds/index';
-import addSeconds from 'date-fns/add_seconds/index';
-import { CalendarEventTimesChangedEvent } from '../common/calendar-event-times-changed-event.interface';
+import {
+  CalendarEventTimesChangedEvent,
+  CalendarEventTimesChangedEventType
+} from '../common/calendar-event-times-changed-event.interface';
 import { CalendarUtils } from '../common/calendar-utils.provider';
 import { validateEvents, trackByIndex } from '../common/util';
+import { DateAdapter } from '../../date-adapters/date-adapter';
+import { PlacementArray } from 'positioning';
 
 export interface CalendarMonthViewBeforeRenderEvent {
   header: WeekDay[];
@@ -38,9 +34,11 @@ export interface CalendarMonthViewBeforeRenderEvent {
   period: ViewPeriod;
 }
 
-export interface CalendarMonthViewEventTimesChangedEvent
-  extends CalendarEventTimesChangedEvent {
-  day: MonthViewDay;
+export interface CalendarMonthViewEventTimesChangedEvent<
+  EventMetaType = any,
+  DayMetaType = any
+> extends CalendarEventTimesChangedEvent<EventMetaType> {
+  day: MonthViewDay<DayMetaType>;
 }
 
 /**
@@ -67,7 +65,6 @@ export interface CalendarMonthViewEventTimesChangedEvent
           <div class="cal-cell-row">
             <mwl-calendar-month-cell
               *ngFor="let day of (view.days | slice : rowIndex : rowIndex + (view.totalDaysVisibleInWeek)); trackBy:trackByDate"
-              [class.cal-drag-over]="day.dragOver"
               [ngClass]="day?.cssClass"
               [day]="day"
               [openDay]="openDay"
@@ -76,13 +73,12 @@ export interface CalendarMonthViewEventTimesChangedEvent
               [tooltipAppendToBody]="tooltipAppendToBody"
               [tooltipTemplate]="tooltipTemplate"
               [customTemplate]="cellTemplate"
-              (click)="handleDayClick($event, day)"
+              (mwlClick)="dayClicked.emit({ day: day })"
               (highlightDay)="toggleDayHighlight($event.event, true)"
               (unhighlightDay)="toggleDayHighlight($event.event, false)"
               mwlDroppable
-              (dragEnter)="day.dragOver = true"
-              (dragLeave)="day.dragOver = false"
-              (drop)="day.dragOver = false; eventDropped(day, $event.dropData.event)"
+              dragOverClass="cal-drag-over"
+              (drop)="eventDropped(day, $event.dropData.event)"
               (eventClicked)="eventClicked.emit({event: $event.event})">
             </mwl-calendar-month-cell>
           </div>
@@ -91,7 +87,10 @@ export interface CalendarMonthViewEventTimesChangedEvent
             [events]="openDay?.events"
             [customTemplate]="openDayEventsTemplate"
             [eventTitleTemplate]="eventTitleTemplate"
-            (eventClicked)="eventClicked.emit({event: $event.event})">
+            (eventClicked)="eventClicked.emit({event: $event.event})"
+            mwlDroppable
+            dragOverClass="cal-drag-over"
+            (drop)="eventDropped(openDay, $event.dropData.event)">
           </mwl-calendar-open-day-events>
         </div>
       </div>
@@ -134,7 +133,7 @@ export class CalendarMonthViewComponent
   /**
    * The placement of the event tooltip
    */
-  @Input() tooltipPlacement: string = 'top';
+  @Input() tooltipPlacement: PlacementArray = 'auto';
 
   /**
    * A custom template to use for the event tooltips
@@ -248,7 +247,8 @@ export class CalendarMonthViewComponent
   constructor(
     private cdr: ChangeDetectorRef,
     private utils: CalendarUtils,
-    @Inject(LOCALE_ID) locale: string
+    @Inject(LOCALE_ID) locale: string,
+    private dateAdapter: DateAdapter
   ) {
     this.locale = locale;
   }
@@ -323,29 +323,31 @@ export class CalendarMonthViewComponent
    * @hidden
    */
   eventDropped(day: MonthViewDay, event: CalendarEvent): void {
-    const year: number = getYear(day.date);
-    const month: number = getMonth(day.date);
-    const date: number = getDate(day.date);
-    const newStart: Date = setDate(
-      setMonth(setYear(event.start, year), month),
+    const year: number = this.dateAdapter.getYear(day.date);
+    const month: number = this.dateAdapter.getMonth(day.date);
+    const date: number = this.dateAdapter.getDate(day.date);
+    const newStart: Date = this.dateAdapter.setDate(
+      this.dateAdapter.setMonth(
+        this.dateAdapter.setYear(event.start, year),
+        month
+      ),
       date
     );
     let newEnd: Date;
     if (event.end) {
-      const secondsDiff: number = differenceInSeconds(newStart, event.start);
-      newEnd = addSeconds(event.end, secondsDiff);
+      const secondsDiff: number = this.dateAdapter.differenceInSeconds(
+        newStart,
+        event.start
+      );
+      newEnd = this.dateAdapter.addSeconds(event.end, secondsDiff);
     }
-    this.eventTimesChanged.emit({ event, newStart, newEnd, day });
-  }
-
-  /**
-   * @hidden
-   */
-  handleDayClick(clickEvent: any, day: MonthViewDay) {
-    // when using hammerjs, stopPropagation doesn't work. See https://github.com/mattlewis92/angular-calendar/issues/318
-    if (!clickEvent.target.classList.contains('cal-event')) {
-      this.dayClicked.emit({ day });
-    }
+    this.eventTimesChanged.emit({
+      event,
+      newStart,
+      newEnd,
+      day,
+      type: CalendarEventTimesChangedEventType.Drop
+    });
   }
 
   private refreshHeader(): void {
@@ -372,7 +374,7 @@ export class CalendarMonthViewComponent
   private checkActiveDayIsOpen(): void {
     if (this.activeDayIsOpen === true) {
       this.openDay = this.view.days.find(day =>
-        isSameDay(day.date, this.viewDate)
+        this.dateAdapter.isSameDay(day.date, this.viewDate)
       );
       const index: number = this.view.days.indexOf(this.openDay);
       this.openRowIndex =
