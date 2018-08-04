@@ -21,6 +21,7 @@ import { PlacementArray } from 'positioning';
       let-tooltipDisabled="tooltipDisabled">
       <div
         class="cal-event"
+        [class.cal-background]="weekEvent.event.background"
         [style.backgroundColor]="weekEvent.event.color?.secondary"
         [style.borderColor]="weekEvent.event.color?.primary"
         [mwlCalendarTooltip]="!tooltipDisabled ? (weekEvent.event.title | calendarEventTitle:'weekTooltip':weekEvent.event) : ''"

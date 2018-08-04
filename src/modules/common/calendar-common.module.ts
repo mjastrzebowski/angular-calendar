@@ -35,6 +35,7 @@ export * from './calendar-view.enum';
 
 export {
   CalendarEvent,
+  CalendarResource,
   EventAction as CalendarEventAction,
   DAYS_OF_WEEK,
   ViewPeriod as CalendarViewPeriod

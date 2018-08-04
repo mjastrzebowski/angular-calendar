@@ -87,6 +87,10 @@ export default (env = 'development') => {
           loader: 'raw-loader'
         },
         {
+          test: /src[\/\\].+\.html$/,
+          loader: 'raw-loader'
+        },
+        {
           test: /node_modules\/@angular\/core\/.+\/core\.js$/,
           parser: {
             system: true // disable `System.import() is deprecated and will be removed soon. Use import() instead.` warning

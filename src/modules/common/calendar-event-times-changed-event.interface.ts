@@ -15,4 +15,5 @@ export interface CalendarEventTimesChangedEvent<MetaType = any> {
   newStart: Date;
   newEnd?: Date;
   allDay?: boolean;
+  newResourceId?: string | number;
 }

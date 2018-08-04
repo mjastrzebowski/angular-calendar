@@ -1,0 +1,17 @@
+.cal-header-resources,
+.cal-resource-columns {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  height: 100%;
+}
+
+.cal-header-resource,
+.cal-resource-column {
+  width: 100%;
+  border-right: 1px solid #e1e1e1;
+  position: relative;
+  &:last-of-type {
+    border: none;
+  }
+}

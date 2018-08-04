@@ -12,7 +12,7 @@
     </div>
     <div>
       Event:
-      <pre>{{ modalData?.event | json }}</pre>
+      <pre>{{ modalData | json }}</pre>
     </div>
   </div>
   <div class="modal-footer">
@@ -90,6 +90,7 @@
     [viewDate]="viewDate"
     [events]="events"
     [refresh]="refresh"
+    [resources]="resources"
     (eventClicked)="handleEvent('Clicked', $event.event)"
     (eventTimesChanged)="eventTimesChanged($event)">
   </mwl-calendar-week-view>
